@@ -35,7 +35,7 @@ In a nutshell, we want flexibility, ease of development and the best possible pe
 
 ## Configuration
 
-_Siteglass_ relies on some existing grunt tasks like [grunt-requirejs](http://asciidisco.github.com/grunt-requirejs/) and [grunt-css](https://github.com/jzaefferer/grunt-css). See the task-specific pages for details on how to configure them if you need or want to modify the defaults. There are three other tasks included in this project. You can find them in `<siteglass>/tasks/`. The default grunt.js will work for a lot of cases but if you need or want to customize, here is some information on configuring the these tasks. As a side not, all of these are multitasks.
+_Siteglass_ relies on some existing grunt tasks like [grunt-requirejs](http://asciidisco.github.com/grunt-requirejs/) and [grunt-css](https://github.com/jzaefferer/grunt-css). See the task-specific pages for details on how to configure them if you need or want to modify the defaults. There are three other tasks included in this project. You can find them in `<siteglass>/tasks/`. The default grunt.js will work for a lot of cases but if you need or want to customize, here is some information on configuring the these tasks. As a side note, all of these are multitasks.
 
 ### regex
 
