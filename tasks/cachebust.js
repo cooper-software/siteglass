@@ -4,7 +4,8 @@
  * @author Elisha Cook <elisha@cooper.com>
  * License: MIT
  */
-var md5 = require('MD5')
+var md5 = require('MD5'),
+    path = require('path')
 
 module.exports = function (grunt)
 {
@@ -21,13 +22,12 @@ module.exports = function (grunt)
             grunt.log.writeln('')
             grunt.log.writeln('Creating cache-busted files...')
             
-            bustFiles.forEach(function (f)
+            bustFiles.forEach(function (original)
             {
-                var contents = grunt.file.read(f, 'utf-8'),
+                var contents = grunt.file.read(original, 'utf-8'),
                     hash = md5(contents),
-                    parts = f.split('.'),
-                    original = f,
-                    busted = parts.length == 2 ? parts[0] + '-' + hash + '.' + parts[1] : f + '-' + hash,
+                    ext = path.extname(original),
+                    busted = path.join(path.dirname(original), path.basename(original, ext) + '-' + hash + ext)
                     find = prefix ? original.substr(prefix.length) : original
                     replace = prefix ? busted.substr(prefix.length) : busted
                 
