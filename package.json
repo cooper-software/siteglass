@@ -1,6 +1,6 @@
 {
     "name": "siteglass",
-    "version": "0.1",
+    "version": "0.0.1",
     "author": "Elisha Cook <elisha@cooper.com>",
     "description": "Hassle-free site optimization.",
     "dependencies": {
