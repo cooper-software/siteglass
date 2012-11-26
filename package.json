@@ -5,7 +5,7 @@
     "description": "Hassle-free site optimization.",
     "dependencies": {
         "grunt-contrib-clean": "0.3.x",
-        "grunt-requirejs": "0.2.x",
+        "grunt-contrib-requirejs": "0.3.x",
         "grunt-css": "0.3.x",
         "MD5": "1.0.x"
     }

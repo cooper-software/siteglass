@@ -13,25 +13,36 @@ module.exports = function(grunt)
             dist: 'dist'
         },
         
-        // Copies the src directory and creates minified JS files,
-        // with almond.js inlined.
+        // Copies the src directory and creates minified JS files.
         requirejs:
         {
             dist:
             {
-                appDir: "src",
-                baseUrl: "js",
-                dir: "dist",
-                modules: [
-                    {
-                        name: "main"
-                    }
-                ],
-                paths: [],
-                preserveLicenseComments: false,
-                
-                almond: true,
-                wrap: true
+                options:
+                {
+                    appDir: "src",
+                    baseUrl: "js",
+                    dir: "dist",
+                    paths: [],
+                    preserveLicenseComments: false,
+                    
+                    /* Use almond... */
+                    wrap: true,
+                    modules: [
+                        {
+                            name: 'main',
+                            out: 'main',
+                            include: ['almond', 'main']
+                        }
+                    ]
+                    
+                    /* ...or not */
+                    // modules: [
+                    //     {
+                    //         name: "main"
+                    //     }
+                    // ]
+                }
             }
         },
         
@@ -91,7 +102,7 @@ module.exports = function(grunt)
     })
     
     grunt.loadNpmTasks('grunt-contrib-clean')
-    grunt.loadNpmTasks('grunt-requirejs')
+    grunt.loadNpmTasks('grunt-contrib-requirejs')
     grunt.loadNpmTasks('grunt-css')
     grunt.loadTasks('tasks')
     
