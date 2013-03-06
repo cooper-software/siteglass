@@ -1,120 +1,152 @@
 # Siteglass
 
-The goal of this project is to free web developers from thinking about site optimization while they are developing. _Siteglass_ provides a bare-bones web site template, mainly for illustrative purposes, and a grunt build that creates an aggressively optimized copy of your source. You organize your CSS with @import, your JavaScript with requirejs and use whatever kind of templates you like and _Siteglass_ gives you...
+Looking for a new solution to managing web assets? No? How about one with features like this:
 
-* Combined and minified JavaScript (r.js + almond)
-* Combined and minified CSS
-* Fonts & images inlined in CSS
-* Cache busting file names for minified CSS and JS files
+* Optimize images
+* Merge & minify CSS
+* CSS merging follows imports
+* Images and fonts are inlined in your CSS
+* Merge and minify lists of JS files or use AMD or a combination
+* Generate cache busting names using MD5 or a managed version number
+* Simple command line tool with a single config file. No boilerplate. Set up your files however you like.
 
-## How to use it
+You can use any or all of these features. Siteglass makes no assumptions about how your code is set up.
 
-First, you need [grunt](http://gruntjs.com/). Then...
+## Example workflow
 
-```sh
-git clone https://github.com/cooper-software/_Siteglass_.git myproject
-cd myproject
-npm install
-# write some code
-grunt dist
+As mentioned, there are many ways to use siteglass. This is one I like. Here's the directory structure:
+
+    project/
+        images/
+            foo.png
+            bar.jpg
+        js/
+            main.js
+            require.js
+            dostuff.js
+        css/
+            main.css
+            type.css
+            grid.css
+        version
+        index.html
+        siteglass.json
+
+As you might guess, this fake project is using require.js to resolve AMD calls. Let's look at some of these files. First, the `index.html` file, which is really a jinja2 template.
+
+```jinja
+<!DOCTYPE html>
+<html>
+    <head>
+        {% if is_dev %}
+            <link rel="stylesheet" type="text/css" href="css/main.css" />
+        {% else %}
+            <link rel="stylesheet" type="text/css" href="css/main.min.{{ version }}.css" />
+        {% endif %}
+    </head>
+    <body>
+        <!-- Content goes here -->
+        {% if is_dev %}
+            <script src="js/require.js" data-main="js/main.js"></script>
+        {% else %}
+            <script src="js/main.min.{{ version }}.js"></script>
+        {% endif %}
+    </body>
+</html>
 ```
 
-This will create a dist folder which you are encouraged to explore.
+We have a template that will load a different css and js file depending on some flag. Also, the production files get a version variable in their name to bust stale cache. And there's just one CSS file and one JS file. Great!
 
-## Why?
+Here's what our `main.css` file looks like:
 
-There are some great tools around for site optimization but, at the time this was written, no package that ties everything together and that fits with the workflow and structure of many different types of projects. We wanted the freedom to organize our code and assets in whatever way made sense for development and then do something simple, like issue a single command, and get a well-optimized front end. We wanted this ease of use without relying on a particular framework. Here's what we chose to do (or not) and why:
+```css
+@import url("type.css");
+@import url("grid.css");
 
-* **Use requirejs** -- manually managing module dependencies is insane in a large project. Requirejs works well and has widespread support.
-* **Use plain old CSS** -- preprocessors have some nice syntax but we find them to hinder development more than help it for a variety of reasons. Mostly it comes down to the fact that plain old CSS is much easier to debug and explore using existing tools. It's easy enough to structure CSS using `@import`. The only downside to this approach is multiple HTTP requests. _Siteglass_ takes care of that by pulling all the CSS into one file and minifying it.
-* **Inline assets** -- sprites are a great invention, but they can be time consuming to create. Inlining images not only obsoletes sprites but it also uses fewer HTTP requests (1 for CSS instead of 1 for CSS + 1 per sprite). And we might as well do it with fonts, too. The build is configurable so it's possible to create optimized page-specific CSS files so clients don't need to download inlined page-specific assets for pages they aren't viewing. The CSS files developers work on aren't cluttered with data URIs and image files can be organized in any way without affecting performance.
-* **Use cache-busting file names** -- we all know by now (or should) that setting a far future expires header on static files reduces traffic and speeds up subsequent page loads. But this presents a problem when our files change. Usually, this is handled by appending a version number to the file name or in a query string where the file is referenced. _Siteglass_ takes a different approach. It generates file names suffixed with a hash of the file's contents. This way, if your CSS or JS changes, clients will never read a file from a stale cache and there is no need to manually manage per-file version numbers.
-* **Replace references to generated files in everything** -- This sort of ties it all together. It's all well and good to have minified files with fancy names but we need to actually point at them with our templates. _Siteglass_ uses simple search and replace to make specified files reference the generated files. There is no DOM involved so the files don't need to be HTML. They can be ejs, PHP, mako, C or FORTRAN if you're in to that sort of thing.
+body {
+    background-image: url(../images/bar.jpg);
+}
+```
 
-In a nutshell, we want flexibility, ease of development and the best possible performance without compromise.
+Those imports are bad practice, right? Not really. The reason is because the imports will only be there during development. After we run siteglass, all the imports will be inlined in `main.css` and then it will be minfied. Also, that background image will be optimized and inlined using a data URL. This handy feature means you never have to create a sprite again.
+
+Ok, how about our `main.js` file?
+
+```javascript
+require(['dostuff'], function (dostuff)
+{
+    dostuff()
+})
+```
+
+Standard AMD. During development, `require.js` will be loaded and it will resolve dependencies and load all the source files. When you run siteglass, it will also resolve the dependencies and then it will merge all the files into one, add [almond.js](https://github.com/jrburke/almond) and minify it.
+
+To recap, during dev, we write normal CSS and javascript without giving any thought to optimization. After we run siteglass we have one file with all our minfied CSS--referenced images and fonts inlined--and one javascript file with all dependencies resolved, minified. Sweet!
+
+What about that `version` file? This file is managed by siteglass. Each time siteglass is run, it will increment the version number and use that when naming the files it creates. The file can be read on the server side and passed to templates so they can use it to generate the correct file names. This behavior can be controlled in the configuration file.
+
+Speaking of which, let's see it!
+
+```json
+{
+    "global": {
+        "encoding": "utf-8",
+        "cache_bust": {
+            "enabled": true,
+            "versioning": {
+                "method": "file",
+                "filename": "version"
+            }
+        }
+    },
+    
+    "amd": [{
+        "source": "js/main.js",
+        "target": "js/main.min.js"
+    }],
+    
+    "css": [{
+        "source": "css/main.css",
+        "target": "css/main.min.css"
+    }],
+    
+    "images": [{
+        "source": [
+            "images/*.png",
+            "images/*.jpg"
+        ]
+    }]
+}
+```
+
+That's it! Have a look at the configuration reference to see what else siteglass can do.
 
 ## Configuration
 
-_Siteglass_ relies on some existing grunt tasks like [grunt-requirejs](http://asciidisco.github.com/grunt-requirejs/) and [grunt-css](https://github.com/jzaefferer/grunt-css). See the task-specific pages for details on how to configure them if you need or want to modify the defaults. There are three other tasks included in this project. You can find them in `<siteglass>/tasks/`. The default grunt.js will work for a lot of cases but if you need or want to customize, here is some information on configuring the these tasks. As a side note, all of these are multitasks.
+The configuration file is in JSON format. It can be called anything but the `siteglass` `--config` argument defaults to "siteglass.json".
 
-### regex
+All settings are optional. Only the build tasks that are configured will run. If you don't want image compression, don't specify an `"images"` section.
 
-This task is very simple. It performs regular expression search and replace on text files. _Siteglass_ uses it to replace requirejs script tags with normal ones pointing at the minified, almondified files. If you are referencing JS in files that have an extension other than ".html" you'll want to modify this task to include those files.
+Any setting that takes a path actually takes a variety of input. A path argument can be a simple path like `"/foo/bar"`, a glob like `"/baz/*.qux"` or a list of paths and globs like `["/foo/bar", "/baz/*.qux"]`.
 
-```js
-regex:
-{
-    dist:
-    // Provide this task with an array of search and replace configurations.
-    [
-        {
-            // Specify the files which should be scanned
-            files: ['dist/**/*.html'],
-            
-            // Define the search pattern...
-            find: '<script data-main="([^"]+)" src="[^"]+"></script>',
-            
-            // ...and the replacement
-            replace: '<script src="$1"></script>'
-        }
-    ]
-}
-```
+The list below describes the properties of the configuration object. Hopefully, the nesting is clear.
 
-### inlineassets
-
-Get rid of pesky HTTP requests with data URIs. This task will inline WOFF fonts, svg, png and jpeg images. This saves lots of HTTP requests and you don't have to create sprites anymore.
-
-```js
-inlineassets:
-{
-    dist:
-    // Provide a list of configurations.
-    [
-        {
-            // This is the base directory against which paths found in the 
-            // files will be resolved.
-            baseDir: 'dist/css',
-            
-            // These are the files in which to look for inlineable assets.
-            files: 'dist/css/main.css',
-            
-            // Set each type of file you want inlined to `true`.
-            // The options are 'woff', 'svg', 'png' and 'jpg'.
-            woff: true,
-            svg: true
-        }
-    ]
-}
-```
-
-### cachebust
-
-Copy files, giving the new file names a suffix that is a hash of the file contents. This way web servers can set a far-future expires header but when your CSS or JS changes, clients will not read from a stale cache.
-
-```js
-cachebust:
-{
-    dist: 
-    {
-        // The list of files that should get new names.
-        bustFiles: [
-            'dist/css/main.css',
-            'dist/js/main.js'
-        ],
-        
-        // The list of files that may contain references to the busted files.
-        replaceInFiles: ['dist/**/*.html'],
-        
-        // The prefix of the busted file paths to remove when replacing the paths.
-        // In this example, cachebust will search for 'css/main.css' and replace it with
-        // something like 'css/main-9071bd176416fba3721d45e5e6df9095.css'. Without this
-        // argument, cachebust would be looking for references to 'dist/css/main.css'.
-        removePathPrefix: 'dist/',
-    }
-}
-```
-
-## Status
-
-This is a young project. We think it's pretty good but we want it to be great. In the future, we plan to add more optimizations like PNG and JPEG shrinking prior to inlining and whitespace removal from template files. If you have ideas, bugs, comments, please share.
+* `global` - Settings that affect all build tasks
+    * `encoding` - The encoding used when reading and writing text files. Defaults to `"utf-8"`
+    * `cache_bust` - Settings for generating cache-busting file names.
+        * `enabled` - Set to `true` to enable cache busting names. The default is `false`.
+        * `versioning` - Settings for how to version names.
+            * `method` - This can be either `"hash"` or `"file"`. The hash setting will generate file names based on a hash of the file's contents. Setting this option to `"file"` will cause siteglass to use a version number stored in a text file. The number will be used in the names of all generated files of a build. This number will be managed by siteglass. There is no need to manually increment the version number. Defaults to `"file"`.
+            * `filename` - This is the name of the file, if the file method is being used. Defaults to `"version"`
+* `amd` - Settings for the AMD build. This is a list of objects with the following properties:
+    * `source` - Path to a main module--a single JS file.
+    * `target` - Path to output the merged and minified file.
+* `css` - Settings for the CSS build. A list of objects with the following properties:
+    * `source` - Path to CSS files.
+    * `target` - Path to output the merged and minified file.
+    * `resolve_imports` - If `true`, resolve `@import` statements and inline the contents. Defaults to `true`.
+    * `inline_assets` - If `true`, inline WOFF fonts, PNGs, JPGs and SVGs using data URLs. Defaults to `true`.
+    * `paths_relative_to` - Can be either `"source"` or `"target"`. If set to `"target"`, paths to fonts and images within the CSS source files will be relative to the target's directory, otherwise they will be relative to the source's directory. Defaults to `"source"`
+* `images` - Settings for the image optimization build. A list of objects with the following properties:
+    * `source` - Path to some images.
+    * `target` - A target output directory. If not set, source files will be overwritten.

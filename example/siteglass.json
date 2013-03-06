@@ -1,0 +1,40 @@
+{
+    "global": {
+        "encoding": "utf-8",
+        "overwrite": false,
+        "cache_bust": {
+            "enabled": true,
+            "versioning": {
+                "method": "file",
+                "filename": "example/version"
+            }
+        }
+    },
+    
+    "js": [{
+        "source": "example/src/js/*.js",
+        "target": "example/dist/js/compressed.js"
+    }],
+    
+    "amd": [{
+        "source": "example/src/js/main.js",
+        "target": "example/dist/js/main.min.js"
+    }],
+    
+    "css": [{
+        "source": "example/src/css/main.css",
+        "target": "example/dist/css/main.min.css",
+        "resolve_imports": true,
+        "inline_assets": true,
+        "paths_relative_to": "source"
+    }],
+    
+    "images": [
+        {
+            "source": [
+                "example/src/images/*.png",
+                "example/src/images/*.jpg"
+            ]
+        }
+    ]
+}
