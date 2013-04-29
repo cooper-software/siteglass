@@ -5,9 +5,11 @@ class MergeMinBuilder(Builder):
     name = 'foo'
     
     def build(self):
-        print "Merging and minifying %s..." % self.name
-        for options in self.config.get(self.name):
-            self.do_one(options)
+        options_list = self.config.get(self.name)
+        if options_list:
+            print "Merging and minifying %s..." % self.name
+            for options in options_list:
+                self.do_one(options)
         
     def do_one(self, options):
         self.options = options
