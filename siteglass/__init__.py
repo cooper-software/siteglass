@@ -1,4 +1,3 @@
-import json
 from siteglass.config import Config
 from siteglass.js import JSBuilder
 from siteglass.css import CSSBuilder

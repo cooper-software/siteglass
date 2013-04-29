@@ -2,3 +2,4 @@
 example/dist/*
 build/*
 version
+siteglass.egg-info/*
