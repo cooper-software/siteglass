@@ -7,7 +7,6 @@ class MergeMinBuilder(Builder):
     def build(self):
         options_list = self.config.get(self.name)
         if options_list:
-            print "Merging and minifying %s..." % self.name
             for options in options_list:
                 self.do_one(options)
         

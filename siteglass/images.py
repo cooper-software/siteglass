@@ -27,9 +27,10 @@ class ImagesBuilder(Builder):
     }
     
     def build(self):
-        print "Optimizing images..."
-        for options in self.config.get('images', []):
-            self.do_one(options)
+        options_list = self.config.get('images')
+        if options_list:
+            for options in options_list:
+                self.do_one(options)
         
     def do_one(self, options):
         source = options['source']

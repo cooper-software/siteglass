@@ -1,12 +1,15 @@
-from setuptools import setup
+from distutils.core import setup, Extension
 
 setup(
     name = 'siteglass',
     version = '0.1',
     packages = ['siteglass'],
+    ext_modules = [
+        Extension('siteglass.jsmin', ['ext/jsmin.c'])
+    ],
+    requires = ['cssmin'],
     package_data = { 'siteglass': ['data/*'] },
     scripts = ['scripts/siteglass'],
-    requires = ['jsmin', 'cssmin'],
     description = 'A flexible tool for merging and compressing web assets.',
     author = 'Cooper Software',
     author_email = 'elisha@cooper.com',

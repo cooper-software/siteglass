@@ -18,12 +18,9 @@ def build(to_build, config_path):
     if not to_build:
         to_build = builders
     
-    print
-    
     for n in to_build:
         b = builders_by_name[n](config)
         b.build()
-        print
 
 
 if __name__ == "__main__":

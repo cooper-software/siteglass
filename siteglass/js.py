@@ -1,5 +1,5 @@
 from siteglass.mergemin import MergeMinBuilder
-from jsmin import jsmin
+from siteglass.jsmin import minify
 
 
 class JSBuilder(MergeMinBuilder):
@@ -7,5 +7,5 @@ class JSBuilder(MergeMinBuilder):
     name = 'js'
     
     def minify(self, contents):
-        return jsmin(';'.join(contents))
+        return minify(';'.join(contents).encode('utf-8'))
         
