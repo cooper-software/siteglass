@@ -2,7 +2,7 @@ from siteglass.builder import Builder
 
 class MergeMinBuilder(Builder):
     
-    name = 'foo'
+    name = 'abstractmergemin'
     
     def build(self):
         options_list = self.config.get(self.name)

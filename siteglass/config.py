@@ -5,11 +5,18 @@ class Config(object):
     
     @classmethod
     def from_json_file(cls, path):
-        return Config(
+        path = os.path.expanduser(os.path.expandvars(path))
+        config = Config(
             json.load(
                 open(path)
             )
         )
+        if 'global' not in config._entries:
+            config._entries['global'] = {}
+        if 'base_path' not in config['global']:
+            config._entries['global']['base_path'] = os.path.dirname(path)
+        config._entries['global']['base_path'] = os.path.abspath(config._entries['global']['base_path'])
+        return config
         
     def __init__(self, entries):
         self._incremented_version = False

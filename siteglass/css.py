@@ -55,7 +55,7 @@ class CSSBuilder(MergeMinBuilder):
         return content
         
     def get_matches(self, pattern, path, content):
-        if self.options.get('paths_relative_to') == 'target':
+        if self.options.get('relative_to') == 'target':
             base_path = self.options.get('target', os.path.dirname(path))
         else:
             base_path = os.path.dirname(path)

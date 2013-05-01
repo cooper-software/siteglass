@@ -1,6 +1,5 @@
 {
     "global": {
-        "encoding": "utf-8",
         "cache_bust": {
             "enabled": true,
             "versioning": {
@@ -21,10 +20,7 @@
     
     "css": [{
         "source": "dist/css/main.css",
-        "target": "dist/css/main.min.css",
-        "resolve_imports": true,
-        "inline_assets": true,
-        "paths_relative_to": "source"
+        "target": "dist/css/main.min.css"
     }],
     
     "images": [

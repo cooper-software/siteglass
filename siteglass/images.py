@@ -11,12 +11,12 @@ class ImagesBuilder(Builder):
     
     types = {
         'jpeg': {
-            'is_supported': find_executable('jpegoptim') is not None,
+            'is_supported': SUPPORTS_JPEG,
             'unsupported_error': 'Cannot optimize JPGs without jpegoptim.',
             'command': 'jpegoptim -f --strip-all %(path)s'
         },
         'png': {
-            'is_supported': find_executable('optipng') is not None,
+            'is_supported': SUPPORTS_PNG,
             'unsupported_error': 'Cannot optimize PNGs without optipng.',
             'command': 'optipng -force -o7 %(path)s'
         }

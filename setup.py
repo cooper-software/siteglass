@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 setup(
     name = 'siteglass',
-    version = '0.1',
+    version = '0.2',
     packages = ['siteglass'],
     ext_modules = [
         Extension('siteglass.jsmin', ['ext/jsmin.c'])

@@ -24,10 +24,10 @@ class Builder(object):
         
     def get_paths(self, glob_or_list):
         if isinstance(glob_or_list, basestring):
-            return glob(glob_or_list)
+            glob_or_list = [glob_or_list]
         paths = []
-        for g in glob_or_list:
-            for p in glob(g):
+        for path in glob_or_list:
+            for p in glob(self.get_abspath(path)):
                 paths.append(p)
         return paths
         
@@ -40,8 +40,9 @@ class Builder(object):
         
     def put_text_file_contents(self, path, contents, versioned=True):
         versioned_path = self.get_versionized_path(path, contents) if versioned else path
-        self.create_dirs_for_file(versioned_path)
-        open(versioned_path, 'wb').write(
+        abs_versioned_path = self.get_abspath(versioned_path)
+        self.create_dirs_for_file(abs_versioned_path)
+        open(abs_versioned_path, 'wb').write(
             contents.encode(self.config.get('global.encoding', 'utf-8'))
         )
         self.busted_paths.append((path, versioned_path))
@@ -52,10 +53,14 @@ class Builder(object):
         rewrite = self.config.get('global.cache_bust.versioning.rewrite')
         if not rewrite:
             return
+        relative_to = self.config.get('global.cache_bust.versioning.relative_to')
+        if relative_to:
+            relative_to = self.get_abspath(relative_to)
         for path in self.get_paths(rewrite):
             contents = self.get_text_file_contents(path)
+            base = relative_to if relative_to else os.path.dirname(path)
             for old_path, new_path in self.busted_paths:
-                abspaths = [os.path.abspath(p) for p in [path, old_path, new_path]]
+                abspaths = [base, self.get_abspath(old_path), self.get_abspath(new_path)]
                 prefix = os.path.commonprefix(abspaths)
                 rel_old_path = os.path.relpath(abspaths[1], prefix)
                 rel_new_path = os.path.relpath(abspaths[2], prefix)
@@ -75,3 +80,8 @@ class Builder(object):
             version = hashlib.md5(contents).hexdigest()
         name, ext = os.path.splitext(path)
         return '%s.%s%s' % (name, version, ext)
+        
+    def get_abspath(self, path):
+        if os.path.isabs(path):
+            return path
+        return os.path.join(self.config['global.base_path'], path)

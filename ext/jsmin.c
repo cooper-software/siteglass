@@ -18,7 +18,7 @@ typedef struct
 
 static BufferStream *stream_new(const char *string, int size)
 {
-    BufferStream *stream = malloc(sizeof(BufferStream));
+    BufferStream *stream = PyMem_Malloc(sizeof(BufferStream));
     
     if (!stream)
     {
@@ -29,7 +29,7 @@ static BufferStream *stream_new(const char *string, int size)
     {
         stream->size = 0;
         stream->capacity = 32;
-        stream->data = malloc(stream->capacity);
+        stream->data = PyMem_Malloc(stream->capacity);
         
         if (!stream->data)
         {
@@ -40,7 +40,7 @@ static BufferStream *stream_new(const char *string, int size)
     {
         stream->size = size;
         stream->capacity = pow(2, ceil(log(size)/log(2)));
-        stream->data = malloc(stream->capacity);
+        stream->data = PyMem_Malloc(stream->capacity);
         
         if (!stream->data)
         {
@@ -61,10 +61,10 @@ static void stream_delete(BufferStream *stream)
     {
         if (stream->data != NULL)
         {
-            free(stream->data);
+            PyMem_Free(stream->data);
         }
         
-        free(stream);
+        PyMem_Free(stream);
     }
 }
 
@@ -84,7 +84,7 @@ static void stream_putc(char c, BufferStream *stream)
     {
         stream->capacity *= 2;
         char *old_data = stream->data;
-        char *new_data = malloc(stream->capacity);
+        char *new_data = PyMem_Malloc(stream->capacity);
         
         if (!new_data)
         {
@@ -93,7 +93,7 @@ static void stream_putc(char c, BufferStream *stream)
         }
         
         memcpy(new_data, old_data, stream->size);
-        free(old_data);
+        PyMem_Free(old_data);
         stream->data = new_data;
     }
     
@@ -110,7 +110,7 @@ static void stream_get_contents(BufferStream *stream, char **string, int *size)
         return;
     }
     
-    *string = malloc(stream->size);
+    *string = PyMem_Malloc(stream->size);
     
     if (!string)
     {
@@ -439,6 +439,11 @@ jsmin_minify(PyObject *self, PyObject *args)
         javascript_size--;
     }
     
+    if (javascript_size < 1)
+    {
+        return PyString_FromString("");
+    }
+    
     char *minified_javascript;
     int minified_javascript_size;
     
@@ -457,7 +462,7 @@ jsmin_minify(PyObject *self, PyObject *args)
     else
     {
         PyObject *retval = PyString_FromStringAndSize(minified_javascript, minified_javascript_size);
-        free(minified_javascript);
+        PyMem_Free(minified_javascript);
         
         return retval;
     }
