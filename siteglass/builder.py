@@ -7,9 +7,20 @@ class Builder(object):
     
     def __init__(self, config):
         self.config = config
+        self.busted_paths = []
+        
+    def run(self):
+        self.build()
+        self.finish()
+        
+    def setup(self):
+        pass
         
     def build(self):
         raise NotImplementedError
+        
+    def finish(self):
+        self.rewrite_busted_paths()
         
     def get_paths(self, glob_or_list):
         if isinstance(glob_or_list, basestring):
@@ -27,17 +38,29 @@ class Builder(object):
     def get_binary_file_contents(self, path):
         return open(path, 'rb').read()
         
-    def put_text_file_contents(self, path, contents):
-        path = self.get_versionized_path(path, contents)
-        self.create_dirs_for_file(path)
-        open(path, 'wb').write(
+    def put_text_file_contents(self, path, contents, versioned=True):
+        versioned_path = self.get_versionized_path(path, contents) if versioned else path
+        self.create_dirs_for_file(versioned_path)
+        open(versioned_path, 'wb').write(
             contents.encode(self.config.get('global.encoding', 'utf-8'))
         )
+        self.busted_paths.append((path, versioned_path))
         
-    def put_binary_file_contents(self, path, contents):
-        path = self.get_versionized_path(path, contents)
-        self.create_dirs_for_file(path)
-        open(path, 'wb').write(contents)
+    def rewrite_busted_paths(self):
+        if not self.busted_paths:
+            return
+        rewrite = self.config.get('global.cache_bust.versioning.rewrite')
+        if not rewrite:
+            return
+        for path in self.get_paths(rewrite):
+            contents = self.get_text_file_contents(path)
+            for old_path, new_path in self.busted_paths:
+                abspaths = [os.path.abspath(p) for p in [path, old_path, new_path]]
+                prefix = os.path.commonprefix(abspaths)
+                rel_old_path = os.path.relpath(abspaths[1], prefix)
+                rel_new_path = os.path.relpath(abspaths[2], prefix)
+                contents = contents.replace(rel_old_path, rel_new_path)
+            self.put_text_file_contents(path, contents, False)
         
     def create_dirs_for_file(self, path):
         dir = os.path.dirname(path)

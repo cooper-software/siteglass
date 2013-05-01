@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% if dev %}
+            <link rel="stylesheet" type="text/css" href="css/main.css" />
+        {% else %}
+            <link rel="stylesheet" type="text/css" href="css/main.min.css" />
+        {% endif %}
+    </head>
+    <body>
+        {% if dev %}
+            <script type="text/javascript" data-main="js/main.js" src="js/require.js"></script>
+        {% else %}
+            <script type="text/javascript" src="js/main.min.js"></script>
+        {% endif %}
+    </body>
+</html>

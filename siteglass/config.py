@@ -28,7 +28,7 @@ class Config(object):
     def get(self, key, default=None):
         try:
             return self.__getitem__(key)
-        except KeyError, e:
+        except KeyError:
             return default
         
         
