@@ -3,6 +3,7 @@ from cssmin import cssmin
 import re
 import os.path
 import base64
+import urllib
 
 class CSSBuilder(MergeMinBuilder):
     
@@ -49,7 +50,7 @@ class CSSBuilder(MergeMinBuilder):
         for type in self.asset_types:
             for statement, path in self.get_matches(type['pattern'], path, content):
                 asset_content = self.get_binary_file_contents(path)
-                encoded_content = base64.encodestring(asset_content)
+                encoded_content = urllib.quote(base64.encodestring(asset_content))
                 new_statement = u'url(data:%s;base64,%s)' % (type['mime'], encoded_content)
                 content = content.replace(statement, new_statement)
         return content
