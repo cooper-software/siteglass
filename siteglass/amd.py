@@ -12,7 +12,10 @@ class AMDBuilder(JSBuilder):
     nameless_define_pattern = re.compile('define\(\s*(function|\[|[a-zA-Z_])')
     
     def process_content(self, path, content):
-        content = self.resolve_requires(os.path.dirname(path), path, content)
+        base_path = self.config.get('global.amd.basePath')
+        if not base_path:
+            base_path = os.path.dirname(path)
+        content = self.resolve_requires(base_path, path, content)
         almond = self.get_text_file_contents(data.get('almond.js'))
         return almond + content
         
@@ -28,7 +31,7 @@ class AMDBuilder(JSBuilder):
         for name in names:
             if not name.endswith('.js'):
                 name += '.js'
-            require_path = os.path.join(base_path, name)
+            require_path = self.resolve_path(base_path, name)
             require_content = self.get_text_file_contents(require_path)
             contents.append(
                 # Note we are using the path of the requiring file here.
@@ -39,6 +42,13 @@ class AMDBuilder(JSBuilder):
             
         return ';'.join(contents)
         
+    def resolve_path(self, base_path, name):
+        paths = self.config.get('global.amd.paths')
+        if paths:
+            for k,v in paths.items():
+                if name.startswith(k):
+                    name = v + name[len(k):]
+        return os.path.join(base_path, name)
         
     def fix_nameless_defines(self, path, content):
         path = os.path.splitext(path.split(os.sep)[-1])[0]

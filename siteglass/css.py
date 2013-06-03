@@ -46,9 +46,9 @@ class CSSBuilder(MergeMinBuilder):
             content = content.replace(statement, import_contents)
         return content
     
-    def inline_assets(self, path, content):
+    def inline_assets(self, base_path, content):
         for type in self.asset_types:
-            for statement, path in self.get_matches(type['pattern'], path, content):
+            for statement, path in self.get_matches(type['pattern'], base_path, content):
                 asset_content = self.get_binary_file_contents(path)
                 encoded_content = urllib.quote(base64.encodestring(asset_content))
                 new_statement = u'url(data:%s;base64,%s)' % (type['mime'], encoded_content)
@@ -59,7 +59,7 @@ class CSSBuilder(MergeMinBuilder):
         if self.options.get('relative_to') == 'target':
             base_path = self.options.get('target', os.path.dirname(path))
         else:
-            base_path = os.path.dirname(path)
+            base_path = os.path.dirname(os.path.abspath(path))
         for match in pattern.finditer(content):
             yield match.group(0), os.path.join(base_path, match.group(1))
         

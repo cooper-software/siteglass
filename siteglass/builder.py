@@ -45,7 +45,8 @@ class Builder(object):
         open(abs_versioned_path, 'wb').write(
             contents.encode(self.config.get('global.encoding', 'utf-8'))
         )
-        self.busted_paths.append((path, versioned_path))
+        if versioned:
+            self.busted_paths.append((path, versioned_path))
         
     def rewrite_busted_paths(self):
         if not self.busted_paths:
@@ -53,17 +54,22 @@ class Builder(object):
         rewrite = self.config.get('global.cache_bust.versioning.rewrite')
         if not rewrite:
             return
-        relative_to = self.config.get('global.cache_bust.versioning.relative_to')
+        relative_to = self.get_paths(self.config.get('global.cache_bust.versioning.relative_to'))
         if relative_to:
-            relative_to = self.get_abspath(relative_to)
+            relative_to = [self.get_abspath(p) for p in relative_to]
         for path in self.get_paths(rewrite):
             contents = self.get_text_file_contents(path)
-            base = relative_to if relative_to else os.path.dirname(path)
+            bases = relative_to if relative_to else [os.path.dirname(path)]
             for old_path, new_path in self.busted_paths:
-                abspaths = [base, self.get_abspath(old_path), self.get_abspath(new_path)]
-                prefix = os.path.commonprefix(abspaths)
-                rel_old_path = os.path.relpath(abspaths[1], prefix)
-                rel_new_path = os.path.relpath(abspaths[2], prefix)
+                old_abs_path = os.path.abspath(old_path)
+                new_abs_path = os.path.abspath(new_path)
+                prefix = ''
+                for b in bases:
+                    if old_abs_path.startswith(b):
+                        prefix = b
+                        break
+                rel_old_path = old_abs_path[len(prefix):]
+                rel_new_path = new_abs_path[len(prefix):]
                 contents = contents.replace(rel_old_path, rel_new_path)
             self.put_text_file_contents(path, contents, False)
         
