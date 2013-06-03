@@ -7,5 +7,5 @@ class JSBuilder(MergeMinBuilder):
     name = 'js'
     
     def minify(self, contents):
-        return minify(';'.join(contents).encode('utf-8'))
+        return minify(';'.join(contents).encode(self.config.get('global.encoding', 'utf-8')))
         

@@ -19,7 +19,9 @@ class AMDBuilder(JSBuilder):
         almond = self.get_text_file_contents(data.get('almond.js'))
         return almond + content
         
-    def resolve_requires(self, base_path, path, content, visited={}):
+    def resolve_requires(self, base_path, path, content, visited=None):
+        if visited is None:
+            visited = {}
         content = self.fix_nameless_defines(path, content)
         names = []
         for match in self.statement_pattern.finditer(content):
@@ -37,7 +39,7 @@ class AMDBuilder(JSBuilder):
                 # Note we are using the path of the requiring file here.
                 # This is to keep all path resolution relative to the file
                 # that was passed as "main"
-                self.resolve_requires(base_path, require_path, require_content)
+                self.resolve_requires(base_path, require_path, require_content, visited)
             )
             
         return ';'.join(contents)
