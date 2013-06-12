@@ -37,13 +37,28 @@ class CSSBuilder(MergeMinBuilder):
         
     def resolve_imports(self, path, content):
         paths = {}
-        for statement, path in self.get_matches(self.import_pattern, path, content):
-            if paths.get(path):
+        for statement, import_path in self.get_matches(self.import_pattern, path, content):
+            if paths.get(import_path):
                 continue
-            paths[path] = 1
-            import_contents = self.get_text_file_contents(path)
-            import_contents = self.resolve_imports(path, import_contents)
+            paths[import_path] = 1
+            import_contents = self.get_text_file_contents(import_path)
+            import_contents = self.adjust_asset_paths(import_path, path, import_contents)
+            import_contents = self.resolve_imports(import_path, import_contents)
             content = content.replace(statement, import_contents)
+        return content
+        
+    def adjust_asset_paths(self, old_path, new_path, content):
+        old_base_path = os.path.dirname(old_path)
+        new_base_path = os.path.dirname(new_path)
+        if old_base_path == new_base_path:
+            return content
+        for type in self.asset_types:
+            for statement, path in self.get_matches(type['pattern'], old_path, content):
+                asset_path = os.path.abspath(path)
+                content = content.replace(
+                    os.path.relpath(asset_path, old_base_path),
+                    os.path.relpath(asset_path, new_base_path)
+                )
         return content
     
     def inline_assets(self, base_path, content):

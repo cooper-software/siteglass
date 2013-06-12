@@ -54,7 +54,7 @@ class Builder(object):
         rewrite = self.config.get('global.cache_bust.versioning.rewrite')
         if not rewrite:
             return
-        relative_to = self.get_paths(self.config.get('global.cache_bust.versioning.relative_to'))
+        relative_to = self.get_paths(self.config.get('global.cache_bust.versioning.relative_to', []))
         if relative_to:
             relative_to = [self.get_abspath(p) for p in relative_to]
         for path in self.get_paths(rewrite):

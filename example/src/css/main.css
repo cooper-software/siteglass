@@ -1,4 +1,5 @@
 @import url(foo.css);
+@import url(stuff/one.css);
 
 .bar
 {
