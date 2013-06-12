@@ -1,3 +1,5 @@
+import json
+import os.path
 from siteglass.config import Config
 from siteglass.js import JSBuilder
 from siteglass.css import CSSBuilder
@@ -20,9 +22,17 @@ def build(to_build, config_path):
     if not to_build:
         to_build = builders
     
+    versioned_files_map = {}
+    
     for n in to_build:
-        b = builders_by_name[n](config)
+        b = builders_by_name[n](config, versioned_files_map)
         b.run()
+    
+    if config.get('global.cache_bust.versioning.method') == 'lookup' and \
+        config.get('global.cache_bust.versioning.file') is not None:
+        versions_path = config.get('global.cache_bust.versioning.file')
+        versions_path = versions_path if os.path.isabs(versions_path) else os.path.join(config['global.base_path'], versions_path)
+        json.dump(versioned_files_map, open(versions_path, 'w'))
 
 
 if __name__ == "__main__":

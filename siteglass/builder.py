@@ -5,9 +5,10 @@ import hashlib
 
 class Builder(object):
     
-    def __init__(self, config):
+    def __init__(self, config, versioned_files_map=None):
         self.config = config
         self.busted_paths = []
+        self.versioned_files_map = {} if versioned_files_map is None else versioned_files_map
         
     def run(self):
         self.build()
@@ -54,7 +55,7 @@ class Builder(object):
         rewrite = self.config.get('global.cache_bust.versioning.rewrite')
         if not rewrite:
             return
-        relative_to = self.get_paths(self.config.get('global.cache_bust.versioning.relative_to'))
+        relative_to = self.get_paths(self.config.get('global.cache_bust.versioning.relative_to', []))
         if relative_to:
             relative_to = [self.get_abspath(p) for p in relative_to]
         for path in self.get_paths(rewrite):
@@ -84,8 +85,12 @@ class Builder(object):
         version = self.config.get_version()
         if not version:
             version = hashlib.md5(contents).hexdigest()
-        name, ext = os.path.splitext(path)
-        return '%s.%s%s' % (name, version, ext)
+        if self.config.get('global.cache_bust.versioning.method') == 'lookup':
+            self.versioned_files_map[path] = version
+            return path
+        else:
+            name, ext = os.path.splitext(path)
+            return '%s.%s%s' % (name, version, ext)
         
     def get_abspath(self, path):
         if os.path.isabs(path):
