@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 setup(
     name = 'siteglass',
@@ -7,7 +7,7 @@ setup(
     ext_modules = [
         Extension('siteglass.jsmin', ['ext/jsmin.c'])
     ],
-    requires = ['cssmin'],
+    install_requires = ['cssmin'],
     package_data = { 'siteglass': ['data/*'] },
     scripts = ['scripts/siteglass'],
     description = 'A flexible tool for merging and compressing web assets.',
